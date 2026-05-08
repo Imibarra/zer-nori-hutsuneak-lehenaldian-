@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="eu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zer-Nori Ikasten: LEHENALDIA</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --verde: #2e7d32;
+            --rojo: #c62828;
+            --blanco-gris: #eeeeee;
+            --fondo-caja: #ffffff;
+            --texto: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--blanco-gris);
+            color: var(--texto);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #joko-kutxa {
+            background-color: var(--fondo-caja);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .ezkutuan { display: none !important; }
+
+        h1 { color: var(--verde); margin-top: 0; }
+
+        .info-box {
+            text-align: left;
+            background: #f9f9f9;
+            padding: 15px;
+            border-left: 5px solid var(--verde);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--verde);
+        }
+
+        .galdera-area {
+            background: #f1f8e9;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            width: 200px;
+            text-align: center;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1rem;
+            background-color: var(--verde);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover { background-color: #1b5e20; }
+
+        #feedback { font-size: 2.5rem; height: 50px; margin-top: 10px; }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-barrua {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 450px;
+            width: 85%;
+        }
+
+        .gorria { border-top: 10px solid var(--rojo); }
+        .berdea { border-top: 10px solid var(--verde); }
+    </style>
+</head>
+<body>
+
+<div id="joko-kutxa">
+    
+    <!-- 1. HASIERA PANTILA -->
+    <div id="pantaila-hasiera">
+        <h1>ZER-NORI: Lehenaldia</h1>
+        <div class="info-box">
+            <strong>Azalpena (Lehenaldia):</strong>
+            <p>Iraganean gertatutako ekintzak adierazteko erabiltzen da (atzo, herenegun...).</p>
+            <ul>
+                <li><strong>Singularra:</strong> zitzaidan, zitzaizun, zitzaion, zitzaigun, zitzaizuen, zitzaien.</li>
+                <li><strong>Plurala:</strong> zitzaizkidan, zitzaizkizun, zitzaizkio, zitzaizkigu, zitzaizkizuen, zitzaizkien.</li>
+            </ul>
+            <p>50 puntu lortu behar dituzu kronometroa gelditzeko. Huts egitekotan, 0tik hasiko zara!</p>
+        </div>
+        <button onclick="hasiJokoa()">HASI JOKOA</button>
+    </div>
+
+    <!-- 2. JOKOAREN AREA -->
+    <div id="pantaila-jokoa" class="ezkutuan">
+        <div class="stats">
+            <span>Puntuak: <span id="puntuak">0</span> / 50</span>
+            <span>Denbora: <span id="krono">00:00</span></span>
+        </div>
+        <div class="galdera-area">
+            <h2 id="esaldia">...</h2>
+            <input type="text" id="erantzun-input" placeholder="..." autocomplete="off">
+        </div>
+        <button onclick="egiaztatu()">Aurrera</button>
+        <div id="feedback"></div>
+    </div>
+
+    <!-- 3. HUTS EGINDAKO MODALA -->
+    <div id="modal-huts" class="modal ezkutuan">
+        <div class="modal-barrua gorria">
+            <h2 style="color: var(--rojo)">Huts egin duzu!</h2>
+            <p id="esaldi-zuzena" style="font-weight: bold; margin: 20px 0;"></p>
+            <p>Puntuazioa galdu duzu. Gogoratu singularra eta plurala ondo bereizten!</p>
+            <button onclick="berrekin()" style="background-color: var(--rojo)">BERRIRO HASI</button>
+        </div>
+    </div>
+
+    <!-- 4. IRABAZI MODALA -->
+    <div id="modal-irabazi" class="modal ezkutuan">
+        <div class="modal-barrua berdea">
+            <h1>ZORIONAK! 🥳🎉</h1>
+            <p>50 esaldiak zuzen erantzun dituzu Lehenaldian!</p>
+            <h2 id="denbora-emaitza" style="color: var(--verde)"></h2>
+            <button onclick="location.reload()">HASIERARA</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const esaldiak = [
+        {q: "Niri atzo kartera erori ", a: "zitzaidan"}, {q: "Aneri joan den astean giltzak galdu ", a: "zitzaizkion"}, {q: "Hari herenegun mugikorra apurtu ", a: "zitzaion"}, {q: "Guri aurreko astean autobusa galdu ", a: "zitzaigun"}, {q: "Zuei atzo kamisetak apurtu ", a: "zitzaizkizuen"},
+        {q: "Haiei joan den hilean kotxea hondatu ", a: "zitzaien"}, {q: "Mireni atzo liburua busti ", a: "zitzaion"}, {q: "Zuri goizean kafeak hoztu ", a: "zitzaizkizun"}, {q: "Juleni joan den astean lorea zimeldu ", a: "zitzaion"}, {q: "Guri bart argiak itzali ", a: "zitzaizkigun"},
+        {q: "Zuei atzo ordenagailuak blokeatu ", a: "zitzaizkizuen"}, {q: "6.A-ko ikasleei herenegun ateak itxi ", a: "zitzaizkien"}, {q: "Ikerri atzo poltsa hautsi ", a: "zitzaion"}, {q: "Zuri joan den ostiralean kamisetak zikindu ", a: "zitzaizkizun"}, {q: "Mikeli bart ogiak erre ", a: "zitzaizkion"},
+        {q: "Guri joan den astean irratiak apurtu ", a: "zitzaizkigun"}, {q: "Leireri atzo planak aldatu ", a: "zitzaizkion"}, {q: "Paco eta Feliperi goizean kafeak hoztu ", a: "zitzaizkien"}, {q: "Niri herenegun telefonoa erori ", a: "zitzaidan"}, {q: "Zuri joan den astean dirua amaitu ", a: "zitzaizun"},
+        {q: "Maddiri atzo betaurrekoak galdu ", a: "zitzaizkion"}, {q: "Guri bart ur botilak bukatu ", a: "zitzaizkigun"}, {q: "Zuei joan den astelehenean boligrafo berdeak galdu ", a: "zitzaizkizuen"}, {q: "Haiei atzo arrainak gaixotu ", a: "zitzaizkien"}, {q: "Peruri herenegun ariketa ahaztu ", a: "zitzaion"},
+        {q: "Zuri joan den gauean ideia ikaragarriak bururatu ", a: "zitzaizkizun"}, {q: "Gure lagunari atzo katuak ezkutatu ", a: "zitzaizkion"}, {q: "Guri joan den hilean kafe makina guztiak hondatu ", a: "zitzaizkigun"}, {q: "Juneri bart mugikorra itzali ", a: "zitzaion"}, {q: "Haiei aurreko astean telebistak apurtu ", a: "zitzaizkien"},
+        {q: "Niri atzo txapela galdu ", a: "zitzaidan"}, {q: "Zuri goizean etxeko leihoak ireki ", a: "zitzaizkizun"}, {q: "Joni herenegun atea trabatu ", a: "zitzaion"}, {q: "Guri joan den astean autoak gelditu ", a: "zitzaizkigun"}, {q: "Zuei atzo arropak busti ", a: "zitzaizkizuen"},
+        {q: "Haiei joan den neguan landareak hil ", a: "zitzaizkien"}, {q: "Aneri bart prakak hautsi ", a: "zitzaizkion"}, {q: "Zuri atzo ur botila erori ", a: "zitzaizun"}, {q: "Irakasleari goizean ordenagailua moteldu ", a: "zitzaion"}, {q: "Guri joan den astean argazkiak ezabatu ", a: "zitzaizkigun"},
+        {q: "Zuei atzo oporrak amaitu ", a: "zitzaizkizuen"}, {q: "Beste taldeari herenegun planak zapuztu ", a: "zitzaizkion"}, {q: "Niri bart txakurra lo geratu ", a: "zitzaidan"}, {q: "Mireni atzo pastel zatiak erori ", a: "zitzaizkion"}, {q: "Hari joan den astean autoaren giltzak galdu ", a: "zitzaizkion"},
+        {q: "Guri atzo bideak nahastu ", a: "zitzaizkigun"}, {q: "Zuei bart bateriak bukatu ", a: "zitzaizkizuen"}, {q: "Haiei goizean aurpegiak gorritu ", a: "zitzaizkien"}, {q: "Iratiri herenegun sudurra apurtu ", a: "zitzaion"}, {q: "Zuri joan den astean alkandorak zimurtu ", a: "zitzaizkizun"},
+        {q: "Hari atzo zapatilak hautsi ", a: "zitzaizkion"}, {q: "Guri bart telefonoak deskargatu ", a: "zitzaizkigun"}, {q: "Zuei atzo paperak apurtu ", a: "zitzaizkizuen"}, {q: "Dendako langileei herenegun txoriak eskapatu ", a: "zitzaizkien"}, {q: "Beñati joan den astean proiektua egitea ahaztu ", a: "zitzaion"},
+        {q: "Zuri bart lagunak agertu ", a: "zitzaizkizun"}, {q: "Hari goizean gosariak hoztu ", a: "zitzaizkion"}, {q: "Guri atzo ateko giltzak trabatu ", a: "zitzaizkigun"}, {q: "Zuei joan den astean balioak galdu ", a: "zitzaizkizuen"}, {q: "Niri txikitan mandarinak gustatzen ", a: "zitzaizkidan"},
+        {q: "Niri gaztetan musika gustatzen ", a: "zitzaidan"}, {q: "Zuri bart pelikulak amaitu ", a: "zitzaizkizun"}, {q: "Oihaneri atzo kafea erori ", a: "zitzaion"}, {q: "Guri goizean telebistak piztu ", a: "zitzaizkigun"}, {q: "Zuei joan den igandean lagunak bizitan etorri ", a: "zitzaizkizuen"},
+        {q: "Nire gurasoei atzo oparia gustatu ", a: "zitzaien"}, {q: "Niri herenegun etxerako lanak ahaztu ", a: "zitzaizkidan"}, {q: "Zuri atzo prakak busti ", a: "zitzaizkizun"}, {q: "Berari goizean autobusa berandu iritsi ", a: "zitzaion"}, {q: "Guri txikitan lepoak luzatu ", a: "zitzaizkigun"},
+        {q: "Zuei bart leihoak apurtu ", a: "zitzaizkizuen"}, {q: "Maite eta Jaimeri joan den astean pilotak galdu ", a: "zitzaizkien"}, {q: "Aneri atzo argia joan ", a: "zitzaion"}, {q: "Zuri bart bonbilak piztu ", a: "zitzaizkizun"}, {q: "Hari goizean bazkariak erre ", a: "zitzaizkion"},
+        {q: "Guri atzo txartelak galdu ", a: "zitzaizkigun"}, {q: "Zuei joan den ostegunean oinetakoak askatu ", a: "zitzaizkizuen"}, {q: "Haiei bart umeak lokartu ", a: "zitzaizkien"}, {q: "Niri atzo kotxea zikindu ", a: "zitzaidan"}, {q: "Zuri joan den astean lanak pilatu ", a: "zitzaizkizun"},
+        {q: "Juleni herenegun ur botilak erori ", a: "zitzaizkion"}, {q: "Guri atzo gure telefono zenbakiak ahaztu ", a: "zitzaizkigun"}, {q: "Zuei bart telebista hondatu ", a: "zitzaizuen"}, {q: "Haiei joan den urtean lagunak urrundu ", a: "zitzaizkien"}, {q: "Ikerri atzo azterketak txarto atera ", a: "zitzaizkion"},
+        {q: "Zuri herenegun mugikorrak desagertu ", a: "zitzaizun"}, {q: "Hari joan den astean autoak matxuratu ", a: "zitzaizkion"}, {q: "Guri gaur goizean irakasleak etorri ", a: "zitzaizkigun"}, {q: "Irakasleari atzo ikasle guztiak lokartuta geratu ", a: "zitzaizkion"}, {q: "Haiei joan den uztailean oporrak hasi ", a: "zitzaizkien"},
+        {q: "Niri bart jaka busti ", a: "zitzaidan"}, {q: "Zuri atzo motxila ireki ", a: "zitzaizun"}, {q: "Borjari herenegun argazkiak hondatu ", a: "zitzaizkion"}, {q: "Guri joan den astean etxerako lanak amaitu ", a: "zitzaizkigun"}, {q: "Zuei atzo liburua galdu ", a: "zitzaizuen"},
+        {q: "Haiei bart ateak ireki ", a: "zitzaizkien"}, {q: "Niri gaztetan kafeak gustatzen ", a: "zitzaizkidan"}, {q: "Zuri joan den astean Aneren liburua galdu ", a: "zitzaizun"}, {q: "Pakori atzo erlojua gelditu ", a: "zitzaion"}, {q: "Niri azkenaldian pazientzia agortu ", a: "zitzaidan"}
+    ];
+
+    let puntuazioa = 0;
+    let galderaGaurkoa = null;
+    let hasieraDenbora = null;
+    let kronoInterval = null;
+
+    const lortuId = (id) => document.getElementById(id);
+
+    function hasiJokoa() {
+        puntuazioa = 0;
+        lortuId('puntuak').innerText = "0";
+        lortuId('pantaila-hasiera').classList.add('ezkutuan');
+        lortuId('modal-huts').classList.add('ezkutuan');
+        lortuId('pantaila-jokoa').classList.remove('ezkutuan');
+        
+        hasieraDenbora = Date.now();
+        kronoHasi();
+        hurrengoGaldera();
+    }
+
+    function kronoHasi() {
+        if(kronoInterval) clearInterval(kronoInterval);
+        kronoInterval = setInterval(() => {
+            let segunduak = Math.floor((Date.now() - hasieraDenbora) / 1000);
+            let m = Math.floor(segunduak / 60).toString().padStart(2, '0');
+            let s = (segunduak % 60).toString().padStart(2, '0');
+            lortuId('krono').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function hurrengoGaldera() {
+        if (puntuazioa >= 50) {
+            irabazi();
+            return;
+        }
+        
+        const randomPos = Math.floor(Math.random() * esaldiak.length);
+        galderaGaurkoa = esaldiak[randomPos];
+        
+        lortuId('esaldia').innerText = galderaGaurkoa.q + " ______";
+        lortuId('erantzun-input').value = "";
+        lortuId('feedback').innerText = "";
+        lortuId('erantzun-input').focus();
+    }
+
+    function egiaztatu() {
+        const testua = lortuId('erantzun-input').value.trim().toLowerCase();
+        const zuzena = galderaGaurkoa.a.toLowerCase();
+
+        if (testua === zuzena) {
+            puntuazioa++;
+            lortuId('puntuak').innerText = puntuazioa;
+            lortuId('feedback').innerText = "✔️";
+            setTimeout(hurrengoGaldera, 400);
+        } else {
+            hutsEgin();
+        }
+    }
+
+    function hutsEgin() {
+        clearInterval(kronoInterval);
+        lortuId('esaldi-zuzena').innerText = `Zuzena: "${galderaGaurkoa.q}${galderaGaurkoa.a}"`;
+        lortuId('modal-huts').classList.remove('ezkutuan');
+    }
+
+    function berrekin() {
+        lortuId('modal-huts').classList.add('ezkutuan');
+        hasiJokoa();
+    }
+
+    function irabazi() {
+        clearInterval(kronoInterval);
+        lortuId('pantaila-jokoa').classList.add('ezkutuan');
+        lortuId('denbora-emaitza').innerText = "Zure denbora: " + lortuId('krono').innerText;
+        lortuId('modal-irabazi').classList.remove('ezkutuan');
+        
+        confetti({
+            particleCount: 200,
+            spread: 90,
+            origin: { y: 0.6 }
+        });
+    }
+
+    lortuId('erantzun-input').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') egiaztatu();
+    });
+</script>
+
+</body>
+</html>
